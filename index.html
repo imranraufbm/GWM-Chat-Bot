@@ -2,49 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Web Monster Chat Bot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Green Web Monster | Omega</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
         :root { --sidebar-width: 280px; }
-        body { background: #05080a; color: #e2e8f0; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #05080a; color: #e2e8f0; overflow: hidden; font-family: 'Inter', sans-serif; -webkit-text-size-adjust: 100%; }
         
-        /* Markdown Style */
-        .prose h1 { font-size: 1.5rem; font-weight: 900; color: #22c55e; margin: 1rem 0; }
-        .prose h2 { font-size: 1.2rem; font-weight: 800; color: #4ade80; margin: 0.8rem 0; border-bottom: 1px solid #1e293b; }
-        .prose p { margin-bottom: 0.8rem; line-height: 1.6; }
-        .prose strong { color: #22c55e; font-weight: bold; }
+        /* Typography */
+        .prose h1 { font-size: 1.4rem; font-weight: 900; color: #22c55e; margin: 1rem 0; }
+        .prose code { background: #1a202c; color: #4ade80; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.85rem; }
         
-        /* Sidebar Fix: Use Flex-Col to pin settings to bottom */
-        #sidebar { 
-            width: var(--sidebar-width); 
-            background: #0b1219; 
-            transition: transform 0.3s ease; 
-            border-right: 1px solid #22c55e22; 
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
+        /* Code Block Wrapper */
+        pre { position: relative !important; padding-top: 2.5rem !important; margin: 1.5rem 0 !important; border: 1px solid #22c55e33 !important; border-radius: 12px !important; }
+        .code-copy-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: #22c55e22; color: #22c55e; border: 1px solid #22c55e44;
+            padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer;
         }
+        .code-copy-btn:hover { background: #22c55e44; }
+
+        /* Sidebar & Layout */
+        #sidebar { width: var(--sidebar-width); background: #0b1219; transition: transform 0.3s ease; border-right: 1px solid #22c55e22; z-index: 100; display: flex; flex-direction: column; height: 100vh; }
         .sidebar-closed { transform: translateX(-100%); }
+        #history-list { flex: 1; overflow-y: auto; }
         
-        /* The history list takes all available space and scrolls */
-        #history-list { flex: 1; overflow-y: auto; padding-right: 4px; }
-        
-        #overlay.active { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 90; }
-        #chat-window { height: calc(100vh - 180px); overflow-y: auto; scroll-behavior: smooth; }
+        #chat-window { height: calc(100vh - 160px); overflow-y: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .header-center { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: 50%; }
 
-        .header-center { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: 60%; pointer-events: none; }
-        .copy-trigger { margin-top: 10px; font-size: 10px; color: #22c55e; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        .stop-roar { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 10px; cursor: pointer; display: none; }
-
-        .mic-active { color: #ef4444 !important; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* Animations */
+        .mic-active { color: #ef4444 !important; filter: drop-shadow(0 0 8px #ef4444); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
         
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #22c55e44; border-radius: 10px; }
+        /* Mobile Overlay */
+        #overlay.active { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 90; }
+        @media (max-width: 768px) { #sidebar { position: fixed; height: 100vh; } }
     </style>
 </head>
 <body class="flex">
@@ -53,74 +47,49 @@
 
     <aside id="sidebar" class="sidebar-closed md:transform-none fixed md:relative shadow-2xl">
         <div class="p-6 border-b border-green-900/20 bg-slate-900 flex justify-between items-center">
-            <h2 class="font-black text-green-500 uppercase text-xs tracking-tighter">Monster Archives</h2>
+            <h2 class="font-black text-green-500 uppercase text-[10px] tracking-widest">Monster History</h2>
             <button onclick="toggleSidebar()" class="md:hidden text-white">✕</button>
         </div>
-
         <div class="p-4 flex-1 overflow-hidden flex flex-col">
-            <button onclick="newChat()" class="w-full bg-green-600/10 border border-green-500/30 hover:bg-green-600/20 p-3 rounded-xl text-green-400 font-bold mb-4 transition text-xs uppercase tracking-widest">+ New Session</button>
-            <div id="history-list" class="space-y-2 text-xs"></div>
+            <button onclick="newChat()" class="w-full bg-green-600/10 border border-green-500/30 text-green-400 p-3 rounded-xl text-xs font-bold mb-4">+ New Roar</button>
+            <div id="history-list" class="space-y-2 text-[11px]"></div>
         </div>
-        
         <div class="p-4 border-t border-green-900/20 bg-slate-900/50">
-            <button onclick="toggleSettings()" class="w-full flex items-center justify-center gap-2 p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-green-500 font-bold transition">
-                ⚙️ BRAIN SETTINGS
-            </button>
+            <button onclick="toggleSettings()" class="w-full p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] text-green-500 font-black">⚙️ BRAIN SETTINGS</button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
-        <header class="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center relative z-10">
-            <button onclick="toggleSidebar()" class="p-2 bg-slate-800 rounded-lg text-green-500 z-20">☰</button>
-            
+        <header class="p-4 border-b border-slate-800 bg-slate-900/80 flex justify-between items-center z-10">
+            <button onclick="toggleSidebar()" class="p-2 bg-slate-800 rounded-lg text-green-500">☰</button>
             <div class="header-center">
-                <h1 class="text-lg md:text-xl font-black text-green-500 uppercase tracking-tighter leading-none">Green Web Monster</h1>
-                <div id="status" class="text-[8px] uppercase font-bold text-slate-500 tracking-[0.4em] mt-1">Sleeping</div>
+                <h1 class="text-sm md:text-lg font-black text-green-500 uppercase tracking-tighter">Green Web Monster</h1>
+                <div id="status" class="text-[7px] md:text-[9px] uppercase font-bold text-slate-500 tracking-[0.3em] transition-all">Sleeping</div>
             </div>
-
-            <div class="flex items-center gap-2 z-20">
-                <span id="stop-btn" class="stop-roar" onclick="stopRoar()">SILENCE</span>
-                <button id="voice-toggle" onclick="toggleVoiceOutput()" class="p-1 text-xl opacity-40 hover:opacity-100 transition">🔊</button>
-            </div>
+            <button id="voice-toggle" onclick="toggleVoiceOutput()" class="text-xl">🔊</button>
         </header>
 
-        <div id="quick-prompts" class="flex gap-2 p-4 overflow-x-auto no-scrollbar justify-center">
-            <button onclick="quickFeed('Monster, tell me a joke')" class="whitespace-nowrap bg-slate-800 px-3 py-1 rounded-full text-[10px] border border-slate-700 hover:border-green-500 transition">🃏 Joke</button>
-            <button onclick="quickFeed('Monster, write a simple code snippet')" class="whitespace-nowrap bg-slate-800 px-3 py-1 rounded-full text-[10px] border border-slate-700 hover:border-green-500 transition">💻 Code</button>
-            <button onclick="quickFeed('Monster, explain science simply')" class="whitespace-nowrap bg-slate-800 px-3 py-1 rounded-full text-[10px] border border-slate-700 hover:border-green-500 transition">🧪 Science</button>
-        </div>
+        <div id="chat-window" class="p-4 md:p-10 space-y-6 flex flex-col pb-32"></div>
 
-        <div id="chat-window" class="p-4 md:p-10 space-y-8 flex flex-col pb-32"></div>
-
-        <footer class="fixed bottom-0 left-0 md:left-[280px] right-0 p-4 bg-slate-900/90 border-t border-slate-800 z-10">
-            <div class="max-w-3xl mx-auto flex gap-2 items-center bg-slate-800 p-2 rounded-2xl border border-slate-700">
-                <button id="mic-btn" onclick="toggleSpeechRecognition()" class="p-2 text-xl hover:text-green-500 transition">🎤</button>
-                <button onclick="alert('Vision is a Pro Feature. Contact Admin to unlock or use a Vision model.')" class="p-2 text-xl opacity-50">📷</button>
-                <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:outline-none p-2 text-white resize-none text-sm" placeholder="Message the monster..."></textarea>
-                <button onclick="sendMessage()" id="send-btn" class="bg-green-600 hover:bg-green-500 text-white font-black py-2 px-6 rounded-xl transition text-xs">SEND</button>
+        <footer class="fixed bottom-0 left-0 md:left-[280px] right-0 p-3 bg-slate-900/95 border-t border-slate-800 z-10">
+            <div class="max-w-3xl mx-auto flex gap-2 items-center bg-slate-800 p-2 rounded-2xl border border-slate-700 shadow-2xl">
+                <button id="mic-btn" onclick="askMicPermission()" class="p-2 text-xl hover:text-green-500 transition">🎤</button>
+                <button onclick="alert('Contact Admin for Vision Pro.')" class="p-2 text-xl opacity-30">📷</button>
+                <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:outline-none p-2 text-white text-sm resize-none" placeholder="Feed the beast..."></textarea>
+                <button onclick="sendMessage()" id="send-btn" class="bg-green-600 hover:bg-green-500 text-white font-black py-2 px-4 rounded-xl text-xs">SEND</button>
             </div>
         </footer>
     </main>
 
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200] p-4">
-        <div class="bg-slate-900 w-full max-w-md p-8 rounded-3xl border border-green-500/30 shadow-2xl">
-            <h2 class="text-xl font-black mb-6 text-green-500 uppercase tracking-widest">Monster Config</h2>
+        <div class="bg-slate-900 w-full max-w-md p-8 rounded-3xl border border-green-500/30">
+            <h2 class="text-xl font-black mb-6 text-green-500 uppercase">Config</h2>
             <div class="space-y-4">
                 <input type="password" id="api-key" placeholder="OpenRouter API Key" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none">
                 <input type="text" id="model-id" placeholder="Model ID" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none">
-                
-                <label class="text-[9px] text-slate-500 font-bold ml-1">PRIMARY LANGUAGE</label>
-                <select id="user-lang" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none">
-                    <option value="en-US">English</option>
-                    <option value="es-ES">Spanish</option>
-                    <option value="ur-PK">Urdu</option>
-                    <option value="ca-ES">Catalan</option>
-                    <option value="ar-SA">Arabic</option>
-                </select>
-
-                <textarea id="system-prompt" rows="3" placeholder="System Persona" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none text-sm"></textarea>
-                <button onclick="saveSettings()" class="w-full bg-green-600 p-4 rounded-2xl font-black text-white hover:bg-green-500 uppercase">Apply & Save</button>
-                <button onclick="toggleSettings()" class="w-full text-slate-600 text-[10px] font-bold mt-2">CLOSE</button>
+                <textarea id="system-prompt" rows="3" placeholder="System Persona" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm outline-none"></textarea>
+                <button onclick="saveSettings()" class="w-full bg-green-600 p-4 rounded-2xl font-black text-white uppercase">Apply</button>
+                <button onclick="toggleSettings()" class="w-full text-slate-600 text-[10px] mt-2">CLOSE</button>
             </div>
         </div>
     </div>
@@ -136,60 +105,77 @@
             document.getElementById('api-key').value = localStorage.getItem('or-api-key') || '';
             document.getElementById('model-id').value = localStorage.getItem('or-model') || 'google/gemini-2.0-flash-001';
             document.getElementById('system-prompt').value = localStorage.getItem('or-system') || 'You are the Green Web Monster.';
-            document.getElementById('user-lang').value = localStorage.getItem('or-lang') || 'en-US';
-            updateVoiceStatus();
+            updateVoiceIcon();
             refreshHistory();
             newChat();
-            initSpeech();
         };
+
+        function setStatus(text, color = "text-slate-500") {
+            const s = document.getElementById('status');
+            s.innerText = text;
+            s.className = `text-[9px] uppercase font-bold tracking-[0.3em] mt-1 ${color}`;
+        }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('sidebar-closed'); document.getElementById('overlay').classList.toggle('active'); }
         function toggleSettings() { document.getElementById('settings-modal').classList.toggle('hidden'); }
-        function toggleVoiceOutput() { voiceEnabled = !voiceEnabled; localStorage.setItem('monster_voice', voiceEnabled); updateVoiceStatus(); }
-        function updateVoiceStatus() { document.getElementById('voice-toggle').innerText = voiceEnabled ? "🔊" : "🔇"; document.getElementById('voice-toggle').style.opacity = voiceEnabled ? "1" : "0.3"; }
-        function stopRoar() { window.speechSynthesis.cancel(); document.getElementById('stop-btn').style.display = 'none'; }
+        function toggleVoiceOutput() { voiceEnabled = !voiceEnabled; localStorage.setItem('monster_voice', voiceEnabled); updateVoiceIcon(); if(!voiceEnabled) window.speechSynthesis.cancel(); }
+        function updateVoiceIcon() { document.getElementById('voice-toggle').innerText = voiceEnabled ? "🔊" : "🔇"; document.getElementById('voice-toggle').style.opacity = voiceEnabled ? "1" : "0.3"; }
 
         function saveSettings() {
             localStorage.setItem('or-api-key', document.getElementById('api-key').value);
             localStorage.setItem('or-model', document.getElementById('model-id').value);
             localStorage.setItem('or-system', document.getElementById('system-prompt').value);
-            localStorage.setItem('or-lang', document.getElementById('user-lang').value);
             location.reload();
         }
 
-        function initSpeech() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                recognition = new SpeechRecognition();
-                recognition.lang = localStorage.getItem('or-lang') || 'en-US';
-                recognition.onresult = (e) => {
-                    document.getElementById('user-input').value = e.results[0][0].transcript;
-                    document.getElementById('mic-btn').classList.remove('mic-active');
-                };
-            }
-        }
-        function toggleSpeechRecognition() {
+        // --- FIXED MIC LOGIC ---
+        function askMicPermission() {
             const btn = document.getElementById('mic-btn');
-            if (btn.classList.contains('mic-active')) { recognition.stop(); btn.classList.remove('mic-active'); }
-            else { recognition.start(); btn.classList.add('mic-active'); }
+            if (btn.classList.contains('mic-active')) {
+                recognition.stop();
+                btn.classList.remove('mic-active');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return alert("Your browser does not support voice input.");
+
+            recognition = new SpeechRecognition();
+            recognition.lang = ""; // Auto-detect
+            recognition.start();
+
+            recognition.onstart = () => btn.classList.add('mic-active');
+            recognition.onresult = (e) => {
+                document.getElementById('user-input').value = e.results[0][0].transcript;
+                btn.classList.remove('mic-active');
+            };
+            recognition.onerror = () => btn.classList.remove('mic-active');
         }
 
+        // --- MONSTER VOICE ENGINE ---
         function speak(text) {
             if (!voiceEnabled) return;
             window.speechSynthesis.cancel();
+            
             const cleanText = text.replace(/[*#`_]/g, '').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF])/g, '');
             const msg = new SpeechSynthesisUtterance(cleanText);
+            
+            // Language Detection & Voice Selection
             const voices = window.speechSynthesis.getVoices();
-            const lang = localStorage.getItem('or-lang') || 'en-US';
-            const monsterVoice = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+            const isUrdu = /[\u0600-\u06FF]/.test(text);
+            const targetLang = isUrdu ? 'ur' : 'en';
+            
+            const monsterVoice = voices.find(v => v.lang.startsWith(targetLang));
             if(monsterVoice) msg.voice = monsterVoice;
-            msg.pitch = 0.4; msg.rate = 0.85;
-            msg.onstart = () => { document.getElementById('stop-btn').style.display = 'inline'; };
-            msg.onend = () => { document.getElementById('stop-btn').style.display = 'none'; };
+            
+            msg.pitch = 0.5;
+            msg.rate = 1.2; // FASTER
+            
+            msg.onstart = () => setStatus(`Talking [${targetLang.toUpperCase()}]`, "text-green-400");
+            msg.onend = () => setStatus("Sleeping");
+            
             window.speechSynthesis.speak(msg);
         }
-
-        function quickFeed(val) { document.getElementById('user-input').value = val; sendMessage(); }
 
         function newChat() {
             currentChatId = 'chat_' + Date.now();
@@ -201,7 +187,7 @@
         function refreshHistory() {
             const list = document.getElementById('history-list');
             list.innerHTML = Object.keys(allChats).reverse().map(id => `
-                <div class="p-3 bg-slate-800/40 hover:bg-green-600/20 rounded-xl cursor-pointer truncate border border-transparent hover:border-green-500/30 transition mb-2" onclick="loadChat('${id}')">
+                <div class="p-3 bg-slate-800/40 hover:bg-green-600/20 rounded-xl cursor-pointer truncate mb-2 border border-transparent hover:border-green-500/30 transition" onclick="loadChat('${id}')">
                     ${allChats[id].title}
                 </div>
             `).join('');
@@ -220,12 +206,14 @@
             const text = input.value;
             appendUI('user', text);
             input.value = '';
-            document.getElementById('status').innerText = "Thinking...";
+            setStatus("Thinking...", "text-blue-400");
+
             const history = allChats[currentChatId]?.messages || [{role: 'system', content: localStorage.getItem('or-system')}];
             history.push({role: 'user', content: text});
             const bubble = createBubble('assistant');
             const contentDiv = bubble.querySelector('.prose');
             let fullText = "";
+
             try {
                 const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                     method: "POST", headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
@@ -243,6 +231,7 @@
                                 fullText += data.choices[0].delta.content || "";
                                 contentDiv.innerHTML = marked.parse(fullText);
                                 Prism.highlightAllUnder(contentDiv);
+                                injectCodeButtons(contentDiv);
                             } catch(e) {}
                         }
                     });
@@ -254,13 +243,12 @@
                 refreshHistory();
                 addCopy(bubble, fullText);
                 speak(fullText);
-            } catch (err) { contentDiv.innerText = "Error: " + err.message; }
-            finally { document.getElementById('status').innerText = "Sleeping"; }
+            } catch (err) { contentDiv.innerText = "Error: " + err.message; setStatus("Sleeping"); }
         }
 
         function createBubble(role) {
             const div = document.createElement('div');
-            div.className = `p-4 rounded-3xl max-w-[92%] md:max-w-[70%] ${role === 'user' ? 'bg-green-600 text-white self-end ml-auto rounded-tr-none' : 'bg-slate-800 border border-slate-700 self-start rounded-tl-none'}`;
+            div.className = `p-4 rounded-2xl max-w-[92%] md:max-w-[75%] ${role === 'user' ? 'bg-green-600 text-white self-end ml-auto' : 'bg-slate-800 border border-slate-700 self-start'}`;
             div.innerHTML = `<small class="block text-[8px] font-black opacity-30 mb-1 uppercase tracking-tighter">${role}</small><div class="prose text-sm"></div>`;
             document.getElementById('chat-window').appendChild(div);
             return div;
@@ -269,14 +257,30 @@
         function appendUI(role, text) {
             const bubble = createBubble(role);
             bubble.querySelector('.prose').innerHTML = marked.parse(text);
-            if(role === 'assistant' && text.includes('ROAR') === false) addCopy(bubble, text);
+            if(role === 'assistant') { addCopy(bubble, text); injectCodeButtons(bubble); }
             Prism.highlightAllUnder(bubble);
         }
 
+        function injectCodeButtons(container) {
+            container.querySelectorAll('pre').forEach(pre => {
+                if (pre.querySelector('.code-copy-btn')) return;
+                const btn = document.createElement('button');
+                btn.className = 'code-copy-btn';
+                btn.innerText = 'COPY CODE';
+                btn.onclick = () => {
+                    navigator.clipboard.writeText(pre.querySelector('code').innerText);
+                    btn.innerText = 'COPIED!';
+                    setTimeout(() => btn.innerText = 'COPY CODE', 2000);
+                };
+                pre.appendChild(btn);
+            });
+        }
+
         function addCopy(bubble, text) {
+            if (bubble.querySelector('.wisdom-btn')) return;
             const btn = document.createElement('div');
-            btn.className = 'copy-trigger';
-            btn.innerText = '📋 Copy Wisdom';
+            btn.className = 'wisdom-btn mt-3 text-[9px] text-green-500 font-bold cursor-pointer uppercase tracking-widest';
+            btn.innerText = '📋 Copy Monster Wisdom';
             btn.onclick = () => { navigator.clipboard.writeText(text); btn.innerText = '✅ Saved!'; };
             bubble.appendChild(btn);
         }
