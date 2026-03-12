@@ -2,46 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Green Web Monster |ChatBot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Green Web Monster | Master Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
-        :root { --sidebar-width: 280px; }
-        body { background: #05080a; color: #e2e8f0; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
+        :root { --sidebar-width: 290px; }
+        body { background: #05080a; color: #e2e8f0; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; -webkit-text-size-adjust: 100%; }
         
-        .prose h1 { font-size: 1.5rem; font-weight: 900; color: #22c55e; margin: 1rem 0; }
-        .prose h2 { font-size: 1.2rem; font-weight: 800; color: #4ade80; margin: 0.8rem 0; border-bottom: 1px solid #1e293b; }
+        /* Markdown & UI */
+        .prose h1 { font-size: 1.4rem; font-weight: 900; color: #22c55e; margin: 1rem 0; }
         .prose p { margin-bottom: 0.8rem; line-height: 1.6; }
+        pre { position: relative !important; padding-top: 2.5rem !important; border: 1px solid #22c55e22 !important; border-radius: 12px !important; margin: 1.5rem 0 !important; }
         
-        /* Code Block Copy Button */
-        pre { position: relative !important; padding-top: 2.5rem !important; border: 1px solid #22c55e22 !important; border-radius: 12px !important; }
         .code-copy-btn {
             position: absolute; top: 8px; right: 8px;
             background: #22c55e22; color: #22c55e; border: 1px solid #22c55e44;
-            padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer;
+            padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; z-index: 10;
         }
 
+        /* Sidebar Fixes */
         #sidebar { 
-            width: var(--sidebar-width); background: #0b1219; transition: transform 0.3s ease; 
+            width: var(--sidebar-width); min-width: var(--sidebar-width);
+            background: #0b1219; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
             border-right: 1px solid #22c55e22; z-index: 100; display: flex; flex-direction: column; height: 100vh;
         }
-        .sidebar-closed { transform: translateX(-100%); }
-        #history-list { flex: 1; overflow-y: auto; padding-right: 4px; }
+        .sidebar-closed { transform: translateX(-100%); position: absolute; }
+        #history-list { flex: 1; overflow-y: auto; }
         
         #overlay.active { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 90; }
-        #chat-window { height: calc(100vh - 180px); overflow-y: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        #chat-window { height: calc(100vh - 190px); overflow-y: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
 
         .header-center { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; width: 60%; pointer-events: none; }
-        .copy-trigger { margin-top: 10px; font-size: 10px; color: #22c55e; cursor: pointer; font-weight: bold; text-transform: uppercase; }
-        .stop-roar { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 10px; cursor: pointer; display: none; }
+        .stop-roar { background: #ef4444; color: white; padding: 4px 10px; border-radius: 6px; font-size: 10px; margin-left: 10px; cursor: pointer; display: none; font-weight: bold; }
 
-        .mic-active { color: #ef4444 !important; animation: pulse 1s infinite; filter: drop-shadow(0 0 5px #ef4444); }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
+        .mic-active { color: #ef4444 !important; animation: pulse 0.8s infinite; filter: drop-shadow(0 0 10px #ef4444); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #22c55e44; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #22c55e33; border-radius: 10px; }
     </style>
 </head>
 <body class="flex">
@@ -49,25 +49,25 @@
     <div id="overlay" onclick="toggleSidebar()"></div>
 
     <aside id="sidebar" class="sidebar-closed md:transform-none fixed md:relative shadow-2xl">
-        <div class="p-6 border-b border-green-900/20 bg-slate-900 flex justify-between items-center">
-            <h2 class="font-black text-green-500 uppercase text-xs tracking-tighter">Monster Archives</h2>
-            <button onclick="toggleSidebar()" class="md:hidden text-white">✕</button>
+        <div class="p-4 border-b border-green-900/30 bg-slate-900">
+            <button onclick="toggleSettings()" class="w-full flex items-center justify-center gap-2 p-3 bg-green-600/10 border border-green-500/30 rounded-xl text-xs text-green-500 font-black hover:bg-green-600/20 transition">
+                ⚙️ BRAIN SETTINGS
+            </button>
         </div>
+
         <div class="p-4 flex-1 overflow-hidden flex flex-col">
-            <button onclick="newChat()" class="w-full bg-green-600/10 border border-green-500/30 hover:bg-green-600/20 p-3 rounded-xl text-green-400 font-bold mb-4 transition text-xs uppercase tracking-widest">+ New Session</button>
+            <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 ml-1">Monster Archives</h2>
+            <button onclick="newChat()" class="w-full bg-slate-800 border border-slate-700 hover:border-green-500/50 p-3 rounded-xl text-white font-bold mb-4 transition text-xs uppercase">+ New Conversation</button>
             <div id="history-list" class="space-y-2 text-xs"></div>
-        </div>
-        <div class="p-4 border-t border-green-900/20 bg-slate-900/50">
-            <button onclick="toggleSettings()" class="w-full flex items-center justify-center gap-2 p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-green-500 font-bold">⚙️ BRAIN SETTINGS</button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
-        <header class="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center relative z-10">
+        <header class="p-4 border-b border-slate-800 bg-slate-900 flex justify-between items-center relative z-10">
             <button onclick="toggleSidebar()" class="p-2 bg-slate-800 rounded-lg text-green-500 z-20">☰</button>
             <div class="header-center">
-                <h1 class="text-lg md:text-xl font-black text-green-500 uppercase tracking-tighter leading-none">Green Web Monster</h1>
-                <div id="status" class="text-[8px] uppercase font-bold text-slate-500 tracking-[0.4em] mt-1">Sleeping</div>
+                <h1 class="text-base md:text-xl font-black text-green-500 uppercase tracking-tighter">Green Web Monster</h1>
+                <div id="status" class="text-[8px] md:text-[9px] uppercase font-bold text-slate-500 tracking-[0.3em] mt-1">Sleeping</div>
             </div>
             <div class="flex items-center gap-2 z-20">
                 <span id="stop-roar-btn" class="stop-roar" onclick="stopRoar()">SILENCE</span>
@@ -75,33 +75,33 @@
             </div>
         </header>
 
-        <div id="quick-prompts" class="flex gap-2 p-4 overflow-x-auto no-scrollbar justify-center">
-            <button onclick="quickFeed('Monster, tell me a joke')" class="whitespace-nowrap bg-slate-800 px-3 py-1 rounded-full text-[10px] border border-slate-700 hover:border-green-500 transition text-white">🃏 Joke</button>
-            <button onclick="quickFeed('Monster, write a simple code snippet')" class="whitespace-nowrap bg-slate-800 px-3 py-1 rounded-full text-[10px] border border-slate-700 hover:border-green-500 transition text-white">💻 Code</button>
-            <button onclick="quickFeed('Monster, explain science simply')" class="whitespace-nowrap bg-slate-800 px-3 py-1 rounded-full text-[10px] border border-slate-700 hover:border-green-500 transition text-white">🧪 Science</button>
+        <div class="flex gap-2 p-3 overflow-x-auto no-scrollbar justify-center bg-slate-900/30">
+            <button onclick="quickFeed('Monster, tell me a joke')" class="whitespace-nowrap bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-[10px] text-green-400">🃏 Joke</button>
+            <button onclick="quickFeed('Monster, write a code snippet')" class="whitespace-nowrap bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-[10px] text-green-400">💻 Code</button>
+            <button onclick="quickFeed('Monster, explain science')" class="whitespace-nowrap bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-[10px] text-green-400">🧪 Science</button>
         </div>
 
-        <div id="chat-window" class="p-4 md:p-10 space-y-8 flex flex-col pb-32"></div>
+        <div id="chat-window" class="p-4 md:p-10 space-y-8 flex flex-col pb-40"></div>
 
-        <footer class="fixed bottom-0 left-0 md:left-[280px] right-0 p-4 bg-slate-900/90 border-t border-slate-800 z-10">
+        <footer class="fixed bottom-0 left-0 md:left-[290px] right-0 p-4 bg-slate-900/95 border-t border-slate-800 z-10">
             <div class="max-w-3xl mx-auto flex gap-2 items-center bg-slate-800 p-2 rounded-2xl border border-slate-700 shadow-2xl">
-                <button id="mic-btn" onclick="askMicPermission()" class="p-2 text-xl hover:text-green-500 transition text-white">🎤</button>
-                <button onclick="alert('Contact Admin for Vision Pro.')" class="p-2 text-xl opacity-30">📷</button>
-                <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:outline-none p-2 text-white resize-none text-sm" placeholder="Speak to the monster..."></textarea>
-                <button onclick="sendMessage()" id="send-btn" class="bg-green-600 hover:bg-green-500 text-white font-black py-2 px-6 rounded-xl transition text-xs">SEND</button>
+                <button id="mic-btn" onclick="startMic()" class="p-2 text-xl hover:text-green-500 transition text-white">🎤</button>
+                <button onclick="alert('VISION is a PRO FEATURE. Please contact the ADMIN to unlock or upgrade.')" class="p-2 text-xl opacity-30">📷</button>
+                <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none focus:outline-none p-2 text-white resize-none text-sm" placeholder="Message the monster..."></textarea>
+                <button onclick="sendMessage()" id="send-btn" class="bg-green-600 hover:bg-green-500 text-white font-black py-2.5 px-6 rounded-xl transition text-xs">SEND</button>
             </div>
         </footer>
     </main>
 
     <div id="settings-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200] p-4">
-        <div class="bg-slate-900 w-full max-w-md p-8 rounded-3xl border border-green-500/30">
-            <h2 class="text-xl font-black mb-6 text-green-500 uppercase">Monster Config</h2>
-            <div class="space-y-4">
-                <input type="password" id="api-key" placeholder="OpenRouter API Key" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none">
+        <div class="bg-slate-900 w-full max-w-md p-8 rounded-3xl border border-green-500/30 shadow-2xl">
+            <h2 class="text-xl font-black mb-6 text-green-500 uppercase">Config</h2>
+            <div class="space-y-4 text-left">
+                <input type="password" id="api-key" placeholder="API Key" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none">
                 <input type="text" id="model-id" placeholder="Model ID" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none">
-                <textarea id="system-prompt" rows="3" placeholder="System Persona" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none text-sm"></textarea>
-                <button onclick="saveSettings()" class="w-full bg-green-600 p-4 rounded-2xl font-black text-white hover:bg-green-500 uppercase">Apply & Save</button>
-                <button onclick="toggleSettings()" class="w-full text-slate-600 text-[10px] font-bold mt-2">CLOSE</button>
+                <textarea id="system-prompt" rows="3" placeholder="System Prompt" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm outline-none"></textarea>
+                <button onclick="saveSettings()" class="w-full bg-green-600 p-4 rounded-2xl font-black text-white uppercase transition">Save & Apply</button>
+                <button onclick="toggleSettings()" class="w-full text-slate-600 text-[10px] font-bold mt-2 uppercase">Close</button>
             </div>
         </div>
     </div>
@@ -122,7 +122,7 @@
 
         function setStatus(text, color = "text-slate-500") {
             const s = document.getElementById('status');
-            s.innerText = text; s.className = `text-[8px] uppercase font-bold tracking-[0.4em] mt-1 ${color}`;
+            s.innerText = text; s.className = `text-[9px] uppercase font-bold tracking-[0.3em] mt-1 ${color}`;
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('sidebar-closed'); document.getElementById('overlay').classList.toggle('active'); }
@@ -138,43 +138,57 @@
             location.reload();
         }
 
-        function askMicPermission() {
+        // --- FORCED MIC FIX ---
+        function startMic() {
             const btn = document.getElementById('mic-btn');
             if (btn.classList.contains('mic-active')) { recognition.stop(); return; }
+            
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return alert("Mic not supported.");
+            if (!SpeechRecognition) return alert("Browser Mic Error.");
+
             recognition = new SpeechRecognition();
-            recognition.continuous = false; recognition.start();
+            recognition.lang = ""; // Auto-detect mode
             recognition.onstart = () => btn.classList.add('mic-active');
-            recognition.onresult = (e) => { document.getElementById('user-input').value = e.results[0][0].transcript; btn.classList.remove('mic-active'); };
-            recognition.onerror = () => btn.classList.remove('mic-active');
+            recognition.onresult = (e) => { document.getElementById('user-input').value = e.results[0][0].transcript; };
             recognition.onend = () => btn.classList.remove('mic-active');
+            recognition.start();
         }
 
+        // --- STRICT VOICE ENGINE ---
         function speak(text) {
             if (!voiceEnabled) return;
             window.speechSynthesis.cancel();
+            
             const cleanText = text.replace(/[*#`_]/g, '').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF])/g, '');
             const msg = new SpeechSynthesisUtterance(cleanText);
+
+            // Logic to prevent Spanish-English cross accents
             const isUrdu = /[\u0600-\u06FF]/.test(text);
-            const langCode = isUrdu ? 'ur' : 'en';
-            const monsterVoice = window.speechSynthesis.getVoices().find(v => v.lang.startsWith(langCode));
-            if(monsterVoice) msg.voice = monsterVoice;
-            msg.pitch = 0.5; msg.rate = 1.2; // FASTER
-            msg.onstart = () => { document.getElementById('stop-roar-btn').style.display = 'inline'; setStatus(`Talking [${langCode.toUpperCase()}]`, "text-green-400"); };
+            const isLatinBased = /[áéíóúñ¿¡]/.test(text); // Basic check for Spanish/Catalan marks
+            
+            let detectedLang = 'en-US';
+            if (isUrdu) detectedLang = 'ur-PK';
+            else if (isLatinBased) detectedLang = 'es-ES'; // Force Spanish if marks detected
+
+            const voices = window.speechSynthesis.getVoices();
+            const targetVoice = voices.find(v => v.lang.startsWith(detectedLang.split('-')[0]));
+            
+            if(targetVoice) msg.voice = targetVoice;
+            msg.pitch = 0.5; msg.rate = 1.3; // FASTER
+
+            msg.onstart = () => { 
+                document.getElementById('stop-roar-btn').style.display = 'inline'; 
+                setStatus(`Talking [${detectedLang.split('-')[0].toUpperCase()}]`, "text-green-400"); 
+            };
             msg.onend = () => { document.getElementById('stop-roar-btn').style.display = 'none'; setStatus("Sleeping"); };
             window.speechSynthesis.speak(msg);
         }
 
         function quickFeed(val) { document.getElementById('user-input').value = val; sendMessage(); }
-        function newChat() { currentChatId = 'chat_' + Date.now(); document.getElementById('chat-window').innerHTML = ''; appendUI('assistant', 'ROAR! Feed me data.'); }
+        function newChat() { currentChatId = 'chat_' + Date.now(); document.getElementById('chat-window').innerHTML = ''; appendUI('assistant', 'ROAR! Feed me words.'); }
         function refreshHistory() {
             const list = document.getElementById('history-list');
-            list.innerHTML = Object.keys(allChats).reverse().map(id => `
-                <div class="p-3 bg-slate-800/40 hover:bg-green-600/20 rounded-xl cursor-pointer truncate mb-2" onclick="loadChat('${id}')">
-                    ${allChats[id].title}
-                </div>
-            `).join('');
+            list.innerHTML = Object.keys(allChats).reverse().map(id => `<div class="p-3 bg-slate-800/40 hover:bg-green-600/20 rounded-xl cursor-pointer truncate mb-2" onclick="loadChat('${id}')">${allChats[id].title}</div>`).join('');
         }
         function loadChat(id) { currentChatId = id; document.getElementById('chat-window').innerHTML = ''; allChats[id].messages.forEach(m => { if(m.role !== 'system') appendUI(m.role, m.content); }); }
 
@@ -222,7 +236,7 @@
         function createBubble(role) {
             const div = document.createElement('div');
             div.className = `p-4 rounded-3xl max-w-[92%] md:max-w-[70%] ${role === 'user' ? 'bg-green-600 text-white self-end ml-auto rounded-tr-none' : 'bg-slate-800 border border-slate-700 self-start rounded-tl-none'}`;
-            div.innerHTML = `<small class="block text-[8px] font-black opacity-30 mb-1 uppercase tracking-tighter">${role}</small><div class="prose text-sm"></div>`;
+            div.innerHTML = `<small class="block text-[8px] font-black opacity-30 mb-1 uppercase tracking-tighter">${role}</small><div class="prose text-sm md:text-base"></div>`;
             document.getElementById('chat-window').appendChild(div);
             return div;
         }
